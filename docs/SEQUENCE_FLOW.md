@@ -1,45 +1,76 @@
 # Sequence Flow
 
-## Import Pipeline (Milestone 1)
-
-The core data flow when a user imports an order/receipt.
+## System Pipeline Overview
 
 ```
-Client (JSON payload)
-  │
-  └── POST /api/orders/import
-        │
-        ├── 1. Resolve store
-        │     └── find or create stores row by name/chain
-        │
-        ├── 2. For each line item:
-        │     ├── find or create store_products
-        │     │     └── match by external_id or barcode
-        │     │
-        │     └── append price_records if price changed
-        │
-        ├── 3. Create order
-        │     └── orders row with user_id + store_id + ordered_at
-        │
-        └── 4. Create order_items
-              └── one row per line item → store_product_id
+Import → Matching → Enrichment → Analytics
 ```
 
-At this stage `product_id` on `store_products` is left null. Canonical matching happens in a later phase.
+Each stage is independent. Import never blocks on matching. Matching never blocks on enrichment.
 
 ---
 
-## Canonical Matching (Milestone 2 — future)
+## Stage 1: Import Pipeline — DONE
+
+`POST /api/orders/import` — see [API.md](API.md) for full contract.
 
 ```
-store_products (product_id = null)
+POST /api/orders/import (Bearer token)
   │
-  └── Matching pipeline
-        ├── Barcode lookup → products.barcode
-        ├── Name similarity (fuzzy / AI)
-        └── Manual review UI
-              │
-              └── UPDATE store_products SET product_id = ?
+  ├── ImportOrderRequest (validate)
+  │
+  └── OrderImportService::import()
+        │
+        ├── Compute import_hash → check idempotency
+        │     └── if exists → return 200 already_imported
+        │
+        └── DB::transaction()
+              ├── 1. Store::firstOrCreate by chain
+              ├── 2. Order::create + import_hash
+              └── 3. For each item:
+                    ├── StoreProduct::firstOrCreate
+                    │     └── match by (store_id, external_id) or (store_id, name)
+                    ├── PriceRecord::create  (recorded_at = ordered_at)
+                    └── OrderItem::create
+```
+
+At this stage `store_products.product_id` is null. Matching is a separate async stage.
+
+---
+
+## Stage 2: Matching Pipeline — NEXT
+
+Goal: link `store_products` to canonical `products` without touching the import flow.
+
+```
+After order import (async, non-blocking)
+  │
+  └── Queue job: AttemptAutoMatchOrderItems
+        │
+        ├── For each store_product where product_id IS NULL:
+        │     │
+        │     ├── 1. Exact barcode match → products.barcode
+        │     │     └── if found → UPDATE store_products SET product_id = ?
+        │     │
+        │     └── 2. No match → INSERT product_match_reviews (status = pending)
+        │
+        └── Review UI: React page "Needs Review (N)"
+              └── User resolves → UPDATE store_products SET product_id = ?
+```
+
+Matching is fire-and-forget after import. Import never waits for matching.
+
+---
+
+## Stage 3: Enrichment — FUTURE
+
+```
+products (matched)
+  │
+  └── AI enrichment job
+        ├── Nutrition data
+        ├── Classification / category
+        └── Tags (organic, lactose-free, etc.)
 ```
 
 ---
@@ -50,5 +81,16 @@ store_products (product_id = null)
 store_products
   └── price_records (ordered by recorded_at DESC)
         └── latest price per store_product
-              └── compare across stores for same product_id
+              └── compare across stores via shared product_id
 ```
+
+---
+
+## Data Integrity Rules
+
+| Rule | Where enforced |
+|---|---|
+| One order per unique payload | `orders.import_hash` (sha256, unique index) |
+| store_products scoped per store | `UNIQUE(store_id, external_id)` |
+| price_records are append-only | No UPDATE — new row per observed price |
+| product_id nullable until matched | FK nullable, set async by matching job |

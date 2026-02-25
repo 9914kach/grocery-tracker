@@ -17,6 +17,7 @@ class Order extends Model
         'ordered_at',
         'receipt_reference',
         'notes',
+        'import_hash',
     ];
 
     protected $casts = [
