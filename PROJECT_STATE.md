@@ -105,6 +105,26 @@ Import remains independent of matching.
 
 ---
 
+## Future Milestone: Deployment
+
+Goal: Deploy the application to a live server with a custom domain.
+
+Planned:
+
+- [ ] Provision a VPS (Hetzner or DigitalOcean)
+- [ ] Set up nginx + PHP-FPM (no Sail in production)
+- [ ] Configure MySQL on server
+- [ ] Set up SSL via Let's Encrypt + Certbot
+- [ ] Purchase and configure a custom domain
+- [ ] Production `.env` (APP_ENV=production, APP_DEBUG=false)
+- [ ] `npm run build` Vite production assets
+- [ ] GitHub Actions CI/CD — auto-deploy on push to `main`
+- [ ] Queue worker for background jobs (matching pipeline)
+
+Prerequisites: Matching pipeline must be stable before deployment.
+
+---
+
 ## Backlog (Post-MVP Features)
 
 - [ ] Canonical product matching (AI/fuzzy name)
