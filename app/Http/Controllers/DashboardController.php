@@ -12,14 +12,17 @@ class DashboardController extends Controller
 {
     public function index(): Response
     {
+        $userId = auth()->id();
+
         return Inertia::render('Dashboard', [
             'stats' => [
-                'orders_count'       => Order::count(),
+                'orders_count'       => Order::where('user_id', $userId)->count(),
                 'stores_count'       => Store::count(),
                 'products_tracked'   => StoreProduct::count(),
                 'needs_review_count' => StoreProduct::whereNull('product_id')->count(),
             ],
             'recent_orders' => Order::with('store')
+                ->where('user_id', $userId)
                 ->withCount('items')
                 ->latest('ordered_at')
                 ->limit(5)

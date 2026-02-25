@@ -11,6 +11,7 @@ class OrderController extends Controller
     public function index(): Response
     {
         $orders = Order::with('store')
+            ->where('user_id', auth()->id())
             ->withCount('items')
             ->latest('ordered_at')
             ->paginate(20)
