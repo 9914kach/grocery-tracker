@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\StoreProduct;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -34,6 +35,9 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'needsReviewCount' => fn () => $request->user()
+                ? StoreProduct::whereNull('product_id')->count()
+                : 0,
         ];
     }
 }

@@ -1,52 +1,24 @@
 import EmptyState from '@/Components/EmptyState';
-import StatsCard from '@/Components/StatsCard';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 
-export default function Dashboard({ stats, recent_orders }) {
+export default function Index({ orders }) {
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-lg font-semibold text-gray-900">
-                    Dashboard
-                </h2>
+                <h2 className="text-lg font-semibold text-gray-900">Orders</h2>
             }
         >
-            <Head title="Dashboard" />
+            <Head title="Orders" />
 
-            {/* Stats grid */}
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <StatsCard label="Orders" value={stats.orders_count} href={route('orders.index')} />
-                <StatsCard label="Stores" value={stats.stores_count} />
-                <StatsCard label="Products tracked" value={stats.products_tracked} />
-                <StatsCard
-                    label="Needs review"
-                    value={stats.needs_review_count}
-                    href={route('review.index')}
-                />
-            </div>
-
-            {/* Recent orders */}
-            <div className="mt-8">
-                <div className="mb-3 flex items-center justify-between">
-                    <h3 className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                        Recent orders
-                    </h3>
-                    <Link
-                        href={route('orders.index')}
-                        className="text-xs text-gray-500 hover:text-gray-700"
-                    >
-                        View all
-                    </Link>
-                </div>
-
-                <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-                    {recent_orders.length === 0 ? (
-                        <EmptyState
-                            title="No orders yet"
-                            description="Import your first order via POST /api/orders/import"
-                        />
-                    ) : (
+            <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+                {orders.data.length === 0 ? (
+                    <EmptyState
+                        title="No orders imported yet"
+                        description="Send a JSON payload to POST /api/orders/import to get started."
+                    />
+                ) : (
+                    <>
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-gray-100 text-left">
@@ -65,7 +37,7 @@ export default function Dashboard({ stats, recent_orders }) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
-                                {recent_orders.map((order) => (
+                                {orders.data.map((order) => (
                                     <tr
                                         key={order.id}
                                         className="hover:bg-gray-50"
@@ -86,8 +58,35 @@ export default function Dashboard({ stats, recent_orders }) {
                                 ))}
                             </tbody>
                         </table>
-                    )}
-                </div>
+
+                        {/* Pagination */}
+                        {(orders.prev_page_url || orders.next_page_url) && (
+                            <div className="flex items-center justify-between border-t border-gray-100 px-4 py-3">
+                                <p className="text-xs text-gray-400">
+                                    {orders.from}–{orders.to} of {orders.total}
+                                </p>
+                                <div className="flex gap-2">
+                                    {orders.prev_page_url && (
+                                        <Link
+                                            href={orders.prev_page_url}
+                                            className="rounded border border-gray-200 px-3 py-1 text-xs text-gray-600 hover:border-gray-300 hover:text-gray-900"
+                                        >
+                                            Previous
+                                        </Link>
+                                    )}
+                                    {orders.next_page_url && (
+                                        <Link
+                                            href={orders.next_page_url}
+                                            className="rounded border border-gray-200 px-3 py-1 text-xs text-gray-600 hover:border-gray-300 hover:text-gray-900"
+                                        >
+                                            Next
+                                        </Link>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </>
+                )}
             </div>
         </AuthenticatedLayout>
     );
