@@ -111,20 +111,26 @@ Sending the same payload twice returns `200 already_imported` without creating d
 
 ---
 
-## Testing manually with curl
+## Creating a token
 
-First create a token in Tinker:
 ```bash
-docker exec -it grocery-tracker-laravel.test-1 php artisan tinker
->>> $user = App\Models\User::first();
->>> $token = $user->createToken('test')->plainTextToken;
->>> echo $token;
+docker exec grocery-tracker-laravel.test-1 php artisan tinker --execute="echo App\Models\User::first()->createToken('postman')->plainTextToken;"
 ```
 
-Then:
+Returns a string like `1|abc123...` — use as `Bearer <token>` in Authorization header.
+
+Tokens are stored in the `personal_access_tokens` table.
+
+See [TOOLS.md](TOOLS.md) for step-by-step Postman and DBeaver setup guides.
+
+---
+
+## Testing with curl
+
 ```bash
 curl -X POST http://localhost/api/orders/import \
   -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
   -H "Authorization: Bearer <token>" \
   -d '{
     "store": "ica",

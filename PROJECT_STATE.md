@@ -40,14 +40,23 @@ MVP focuses strictly on deterministic import and structural integrity.
 - [x] FormRequest validation
 - [x] OrderImportService with DB transaction
 - [x] Idempotency via `import_hash` (sha256)
-- [x] find-or-create store
-- [x] find-or-create store_products
-- [x] append-only price_records
+- [x] find-or-create store, store_products, price_records
 - [x] create order + order_items
+- [x] Laravel Sanctum API tokens (`HasApiTokens` on User, `personal_access_tokens` table)
 - [x] 3 feature tests (21 assertions, all green)
-- [x] docs/API.md with curl example
+- [x] Verified end-to-end via Postman + DBeaver
 
 Import is deterministic, transactional, and idempotent.
+
+---
+
+### Frontend — DONE
+
+- [x] Dashboard with stats grid + recent orders table
+- [x] Orders list (paginated)
+- [x] Review page — unmatched store_products with amber badge in nav
+- [x] Shared `needsReviewCount` via HandleInertiaRequests middleware
+- [x] Clean/minimal design (Linear-style, bg-gray-50, border cards)
 
 ---
 
@@ -136,7 +145,8 @@ They will be implemented once matching is stable.
 
 ## Docs Index
 
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- [DATABASE.md](docs/DATABASE.md)
-- [SEQUENCE_FLOW.md](docs/SEQUENCE_FLOW.md)
-- [API.md](docs/API.md)
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) — tech stack, Docker setup, request flow
+- [DATABASE.md](docs/DATABASE.md) — full schema with column descriptions
+- [SEQUENCE_FLOW.md](docs/SEQUENCE_FLOW.md) — import pipeline and data flows
+- [API.md](docs/API.md) — API contract, field reference, responses
+- [TOOLS.md](docs/TOOLS.md) — DBeaver + Postman setup guides
