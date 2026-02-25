@@ -8,6 +8,18 @@ export default defineConfig({
         port: 5173,
         hmr: {
             host: 'localhost',
+            clientPort: 5173,
+        },
+        watch: {
+            usePolling: true,
+            interval: 300,
+            ignored: [
+                '**/node_modules/**',
+                '**/vendor/**',
+                '**/storage/**',
+                '**/bootstrap/cache/**',
+                '**/.git/**',
+            ],
         },
     },
     plugins: [
